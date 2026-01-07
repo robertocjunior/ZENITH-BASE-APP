@@ -242,6 +242,20 @@ android {
 }
 ```
 
+para compilar o app use a seguinte sequencia de comandos
+
+```
+cd android
+```
+
+```
+./gradlew clean
+```
+
+```
+cd ..
+```
+
 ```
 npx expo prebuild --platform android
 ```

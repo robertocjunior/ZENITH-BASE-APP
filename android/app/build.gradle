@@ -116,7 +116,6 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // Alterado para usar a config de release definida acima
             signingConfig signingConfigs.release
             shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
             minifyEnabled enableProguardInReleaseBuilds
@@ -139,6 +138,7 @@ android.applicationVariants.all { variant ->
         outputFileName = "zenith-${variant.versionName}.apk"
     }
 }
+
 // Apply static values from `gradle.properties` to the `android.packagingOptions`
 // Accepts values in comma delimited lists, example:
 // android.packagingOptions.pickFirsts=/LICENSE,**/picasa.ini
