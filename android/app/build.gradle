@@ -21,7 +21,7 @@ react {
     bundleCommand = "export:embed"
 
     /* Folders */
-     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
+    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
     // root = file("../../")
     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
     // reactNativeDir = file("../../node_modules/react-native")
@@ -102,15 +102,22 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (project.hasProperty('ZENITH_RELEASE_STORE_FILE')) {
+                storeFile file(ZENITH_RELEASE_STORE_FILE)
+                storePassword ZENITH_RELEASE_STORE_PASSWORD
+                keyAlias ZENITH_RELEASE_KEY_ALIAS
+                keyPassword ZENITH_RELEASE_KEY_PASSWORD
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Alterado para usar a config de release definida acima
+            signingConfig signingConfigs.release
             shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"

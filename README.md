@@ -177,6 +177,71 @@ O projeto está organizado da seguinte maneira:
 App.js: O ponto de entrada principal do aplicativo.
 
 
+para assinar o app:
+
+```
+keytool -genkey -v -keystore android/app/zenith-wms-app.keystore -alias zenith-wms-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "senha" -keypass "senha"
+```
+
+Copie e cole substituindo a seção android atual:
+
+```
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+    namespace 'com.robertocjunior.zenithwms'
+
+    defaultConfig {
+        applicationId 'com.robertocjunior.zenithwms'
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 3
+        versionName "1.0.16"
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        release {
+            if (project.hasProperty('ZENITH_RELEASE_STORE_FILE')) {
+                storeFile file(ZENITH_RELEASE_STORE_FILE)
+                storePassword ZENITH_RELEASE_STORE_PASSWORD
+                keyAlias ZENITH_RELEASE_KEY_ALIAS
+                keyPassword ZENITH_RELEASE_KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            // Alterado para usar a config de release definida acima
+            signingConfig signingConfigs.release
+            shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
+        }
+    }
+    androidResources {
+        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+    }
+}
+```
+
 ```
 npx expo prebuild --platform android
 ```
