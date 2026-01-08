@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import * as crypto from 'expo-crypto';
 
 const API_URL_KEY = 'zenith_api_base_url';
-const DEFAULT_API_URL = 'https://zenith.nicocereais.com.br:3080';
+const DEFAULT_API_URL = 'https://zenith.nicocereais.com.br';
 
 const SESSION_TOKEN_KEY = 'sessionToken';
 const SNK_SESSION_ID_KEY = 'snkjsessionid';
