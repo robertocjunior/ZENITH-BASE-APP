@@ -9,8 +9,6 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import TestBanner from './components/common/TestBanner';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-// NOVO: Importa o novo modal
-import ReAuthModal from './components/modals/ReAuthModal';
 
 LogBox.ignoreLogs(['Non-serializable values were found in the navigation state']);
 
