@@ -1,7 +1,6 @@
 // components/ProfilePanel.js
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Modal, StyleSheet, Pressable, Animated, Dimensions } from 'react-native';
-// 1. SafeAreaView é importado no lugar do hook
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Application from 'expo-application';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,10 +11,9 @@ import AnimatedButton from './common/AnimatedButton';
 
 const { width } = Dimensions.get('window');
 
-const ProfilePanel = ({ visible, onClose, onNavigateToHistory, onLogout }) => {
+const ProfilePanel = ({ visible, onClose, onLogout }) => {
     const { userSession } = useAuth();
     const { colors } = useTheme();
-    // 2. O hook useSafeAreaInsets foi removido
     const styles = getStyles(colors);
 
     const slideAnim = useRef(new Animated.Value(width)).current;
@@ -62,7 +60,6 @@ const ProfilePanel = ({ visible, onClose, onNavigateToHistory, onLogout }) => {
                         { width: panelWidth, transform: [{ translateX: slideAnim }] }
                     ]}
                 >
-                    {/* 3. SafeAreaView envolve todo o conteúdo do painel */}
                     <SafeAreaView style={styles.safeArea}>
                         <Pressable
                             style={styles.panelContentContainer}
@@ -83,12 +80,9 @@ const ProfilePanel = ({ visible, onClose, onNavigateToHistory, onLogout }) => {
                                     </AnimatedButton>
                                 </View>
 
-                                {/* -- CORPO (MENU) -- */}
+                                {/* -- CORPO (Pode adicionar opções genéricas aqui futuramente) -- */}
                                 <View style={styles.body}>
-                                    <AnimatedButton style={styles.panelButton} onPress={onNavigateToHistory}>
-                                        <Ionicons name="time-outline" size={22} color={colors.text} />
-                                        <Text style={styles.panelButtonText}>Histórico de Operações</Text>
-                                    </AnimatedButton>
+                                    {/* Menu limpo */}
                                 </View>
                             </View>
 
@@ -108,7 +102,6 @@ const ProfilePanel = ({ visible, onClose, onNavigateToHistory, onLogout }) => {
     );
 };
 
-// 4. `insets` foi removido dos parâmetros dos estilos
 const getStyles = (colors) => StyleSheet.create({
     overlay: {
         flex: 1,
@@ -116,7 +109,7 @@ const getStyles = (colors) => StyleSheet.create({
     },
     panel: {
         height: '100%',
-        backgroundColor: colors.cardBackground, // A cor de fundo principal fica aqui
+        backgroundColor: colors.cardBackground, 
         position: 'absolute',
         top: 0,
         left: 0,
@@ -127,7 +120,6 @@ const getStyles = (colors) => StyleSheet.create({
     panelContentContainer: {
         flex: 1,
         justifyContent: 'space-between',
-        // 5. Paddings manuais foram removidos, SafeAreaView cuida disso
     },
     header: {
         padding: SIZES.padding * 1.5,

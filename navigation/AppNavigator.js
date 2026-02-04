@@ -7,8 +7,6 @@ import { useTheme } from '../contexts/ThemeContext';
 
 import LoginScreen from '../screens/LoginScreen';
 import MainScreen from '../screens/MainScreen';
-import DetailsScreen from '../screens/DetailsScreen';
-import HistoryScreen from '../screens/HistoryScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
@@ -29,22 +27,15 @@ const AppNavigator = () => {
     return (
         <NavigationContainer>
             <Stack.Navigator
-                // Adicionado para evitar "flash" branco na transição
                 cardStyle={{ backgroundColor: colors.background }} 
                 screenOptions={{
                     headerShown: false,
-                    // Usa a animação de fade nativa, que é mais otimizada
                     animation: 'fade',
-                    // Ajusta a duração para uma transição mais suave
                     animationDuration: 300,
                 }}
             >
                 {authStatus === 'loggedIn' ? (
-                    <>
-                        <Stack.Screen name="Main" component={MainScreen} />
-                        <Stack.Screen name="Details" component={DetailsScreen} />
-                        <Stack.Screen name="History" component={HistoryScreen} />
-                    </>
+                    <Stack.Screen name="Main" component={MainScreen} />
                 ) : authStatus === 'authenticating' ? (
                     <Stack.Screen name="Loading" component={LoadingScreen} />
                 ) : (

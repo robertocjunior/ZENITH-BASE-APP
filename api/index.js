@@ -48,23 +48,7 @@ async function authenticatedFetch(endpoint, body = {}) {
         'X-App-Version': APP_VERSION 
     };
 
-    // O Authorization deve ser enviado SEMPRE
     headers['Authorization'] = `Bearer ${sessionToken}`;
-
-    const transactionType = body.type;
-    const requiresSessionId = endpoint === '/execute-transaction' &&
-                              ['baixa', 'transferencia', 'picking', 'correcao'].includes(transactionType);
-
-    if (requiresSessionId) {
-        const snkjsessionid = await AsyncStorage.getItem(SNK_SESSION_ID_KEY);
-        if (!snkjsessionid) {
-            const authError = new Error('Sessão Sankhya não encontrada. Faça login novamente.');
-            authError.reauthRequired = true;
-            throw authError;
-        }
-        // Envia o header específico que o backend Go espera
-        headers['Snkjsessionid'] = snkjsessionid; 
-    }
 
     // Timeout de 15s
     const controller = new AbortController();
@@ -160,8 +144,6 @@ export async function login(username, password) {
 
         if (data.snkjsessionid) {
             await AsyncStorage.setItem(SNK_SESSION_ID_KEY, data.snkjsessionid);
-        } else {
-             console.warn('AVISO: snkjsessionid não recebido.'); 
         }
 
         return data;
@@ -177,14 +159,11 @@ export async function login(username, password) {
 
 export async function logout() {
     try {
-        // 1. Recupera o token ANTES de limpar o storage para poder enviar ao backend
         const sessionToken = await AsyncStorage.getItem(SESSION_TOKEN_KEY);
 
-        // 2. Limpeza Local (Prioridade)
         await AsyncStorage.multiRemove([SESSION_TOKEN_KEY, SNK_SESSION_ID_KEY, 'userSession']);
         console.log('Dados locais limpos.');
 
-        // 3. Notifica Backend (Best effort)
         if (sessionToken) {
             try {
                  const controller = new AbortController();
@@ -195,12 +174,11 @@ export async function logout() {
                      headers: { 
                         'Content-Type': 'application/json', 
                         'X-App-Version': APP_VERSION,
-                        'Authorization': `Bearer ${sessionToken}` // CORREÇÃO: Envia o token para o backend invalidar
+                        'Authorization': `Bearer ${sessionToken}`
                      },
                      body: JSON.stringify({}),
                      signal: controller.signal
                  });
-                 console.log('Backend notificado do logout.');
             } catch (e) { 
                 console.warn("Não foi possível notificar o backend sobre o logout:", e.message); 
             }
@@ -211,36 +189,5 @@ export async function logout() {
     }
 }
 
-// Rotas
+// Rotas genéricas
 export const fetchPermissions = () => authenticatedFetch('/permissions');
-
-export const searchItems = (codArm, filtro) => {
-    const codArmInt = parseInt(codArm, 10);
-    const payload = { 
-        codArm: isNaN(codArmInt) ? 0 : codArmInt, 
-        filtro: filtro || "" 
-    };
-    return authenticatedFetch('/search-items', payload);
-};
-
-export const fetchItemDetails = (codArm, sequencia) => {
-    const codArmInt = parseInt(codArm, 10);
-    const payload = { 
-        codArm: isNaN(codArmInt) ? 0 : codArmInt, 
-        sequencia: String(sequencia) 
-    };
-    return authenticatedFetch('/get-item-details', payload);
-}
-
-export const fetchHistory = (filters) => authenticatedFetch('/get-history', filters);
-
-export const fetchPickingLocations = (codarm, codprod, sequencia) => {
-    const payload = {
-        codarm: parseInt(codarm, 10),
-        codprod: parseInt(codprod, 10),
-        sequencia: parseInt(sequencia, 10)
-    };
-    return authenticatedFetch('/get-picking-locations', payload);
-}
-
-export const executeTransaction = (type, payload) => authenticatedFetch('/execute-transaction', { type, payload });
