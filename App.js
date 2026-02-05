@@ -16,8 +16,6 @@ const AppContent = () => {
   // ALTERADO: Pega os novos estados e funções do AuthContext
   const { userSession, apiError, clearApiError, isReAuthVisible, handleReAuth, cancelReAuth } = useAuth();
   const { theme, colors } = useTheme();
-  // NOVO: Estado de loading para o botão do ReAuthModal
-  const [isReAuthLoading, setIsReAuthLoading] = useState(false);
 
   if (!colors) {
     return <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />;
@@ -44,13 +42,6 @@ const AppContent = () => {
         visible={!!apiError}
         errorMessage={apiError}
         onClose={clearApiError}
-      />
-      {/* NOVO: Renderiza o modal de re-autenticação globalmente */}
-      <ReAuthModal
-          visible={isReAuthVisible}
-          onConfirm={onReAuthConfirm}
-          onCancel={cancelReAuth}
-          loading={isReAuthLoading}
       />
       {userSession?.isTestEnvironment && <TestBanner />}
     </View>

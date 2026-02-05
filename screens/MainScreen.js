@@ -9,7 +9,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as SystemUI from 'expo-system-ui';
 import ProfilePanel from '../components/ProfilePanel';
 import AnimatedButton from '../components/common/AnimatedButton';
-import ForkliftAnimation from '../components/common/ForkliftAnimation';
 
 const MainScreen = ({ navigation }) => {
     const { logout } = useAuth();
@@ -42,7 +41,6 @@ const MainScreen = ({ navigation }) => {
             
             <View style={styles.header}>
                 <View style={styles.headerContent}>
-                    {/* Placeholder para título ou logo se desejar */}
                     <Text style={styles.headerTitle}>Zenith Base</Text>
 
                     <AnimatedButton style={styles.profileButton} onPress={() => setPanelVisible(true)}>
@@ -52,11 +50,7 @@ const MainScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.content}>
-                <View style={styles.placeholderContainer}>
-                    <ForkliftAnimation />
-                    <Text style={styles.placeholderText}>App Base Pronto</Text>
-                    <Text style={styles.placeholderSubText}>Comece a construir aqui</Text>
-                </View>
+                {/* Área de conteúdo vazia */}
             </View>
         </View>
     );
@@ -85,23 +79,7 @@ const getStyles = (colors) => StyleSheet.create({
     },
     content: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    placeholderContainer: {
-        alignItems: 'center',
-        opacity: 0.7
-    },
-    placeholderText: {
-        color: colors.text,
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginTop: 20,
-    },
-    placeholderSubText: {
-        color: colors.textLight,
-        fontSize: 16,
-        marginTop: 5,
+        backgroundColor: colors.background,
     }
 });
 

@@ -190,10 +190,10 @@ android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
-    namespace 'com.robertocjunior.zenithwms'
+    namespace 'com.robertocjunior.base.zenithwms'
 
     defaultConfig {
-        applicationId 'com.robertocjunior.zenithwms'
+        applicationId 'com.robertocjunior.base.zenithwms'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 3
@@ -266,4 +266,9 @@ cd android
 
 ```
 .\gradlew assembleRelease
+```
+
+Para testes realtime utilize
+```
+npx expo run:android
 ```
