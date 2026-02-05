@@ -1,274 +1,187 @@
-<p align="center">
-<img src="assets/icon.png" alt="Logo do App" width="200" height="200">
-</p>
 
-<h1 align="center">ZENITH WMS ANDROID APP</h1>
+# ZENITH WMS ANDROID APP
 
-Um aplicativo móvel de Warehouse Management System (WMS) desenvolvido com React Native e Expo, projetado para otimizar operações de inventário e logística de forma intuitiva e eficiente.
+Aplicativo móvel de Warehouse Management System (WMS) desenvolvido com React Native e Expo. O projeto foca em alta performance, operação offline-first (onde possível) e uma arquitetura limpa separando UI, Contexto e Serviços de API.
 
-### 📸 Telas Principais
+---
 
-#### Login
-*(Adicione aqui uma captura da tela de login)*
+## 📋 Índice
+1. [Estrutura do Projeto](#-estrutura-do-projeto)
+2. [Desenvolvimento e Arquitetura](#-desenvolvimento-e-arquitetura)
+    - [Consumindo a API](#consumindo-a-api)
+    - [Gerenciamento de Estado (Contexts)](#gerenciamento-de-estado-contexts)
+    - [Temas e UI](#temas-e-ui)
+3. [Guia de Compilação (Build)](#-guia-de-compilação-build)
+    - [1. Configuração de Assinatura](#1-configuração-de-assinatura-keystore)
+    - [2. Personalizar Nome do APK](#2-personalizar-nome-do-apk-automático)
+    - [3. Comandos de Build](#3-gerando-o-apk-release)
+4. [Execução em Debug](#-execução-em-debug)
 
-#### Tela Principal
-*(Adicione aqui uma captura da tela principal)*
+---
 
-#### Detalhes
-*(Adicione aqui uma captura da tela de detalhes)*
+## 📂 Estrutura do Projeto
 
-### ✨ Funcionalidades
-* **Autenticação Segura:** Sistema de login e logout com persistência de sessão e do último usuário logado.
-* **Interface Temática:** Suporte completo a temas Claro (Light), Escuro (Dark) e Automático (sincronizado com o sistema operacional).
-* **Gerenciamento de Armazéns:**
-    * Seleção de armazém com persistência da última escolha por usuário.
-    * Bloqueio inteligente do seletor quando o usuário possui acesso a apenas um armazém.
-* **Consulta de Estoque:** Busca dinâmica e filtragem de itens dentro do armazém selecionado.
-* **Operações de WMS:**
-    * Visualização de detalhes completos do item.
-    * Histórico de operações do dia.
-    * Módulos para Baixa, Transferência, Picking e Correção de inventário.
-* **Experiência de Usuário Polida:**
-    * Animação de carregamento temática e personalizada com a identidade visual do app.
-    * Transições de tela suaves e feedback tátil em todos os botões.
-    * Componentes de UI customizados, como menus dropdown, para uma interface coesa.
-* **Configurações Flexíveis:**
-    * Modal de configurações para alterar o tema do aplicativo.
-    * Configuração de endereço da API.
+* **`/api`**: Centraliza a comunicação com o Backend. Não use `fetch` direto nos componentes.
+* **`/components`**: Componentes visuais reutilizáveis (Botões, Cards, Modais).
+* **`/contexts`**: Lógica global (Autenticação, Sessão, Permissões, Tema).
+* **`/screens`**: Telas da aplicação.
+* **`/utils`**: Formatadores de data, texto e auxiliares.
+* **`/android`**: Código nativo gerado (Não edite manualmente a menos que saiba o que está fazendo no Gradle).
 
-### 🚀 Tecnologias Utilizadas
-* **React Native**
-* **Expo**
-* **React Navigation** para o gerenciamento de rotas e navegação.
-* **React Native Reanimated** para animações fluidas.
-* **AsyncStorage** para persistência de dados no dispositivo.
+---
 
-### ⚙️ Como Executar o Projeto (Modo de Desenvolvimento)
-Clone o repositório:
-```bash
-git clone <url-do-seu-repositorio>
-Instale as dependências:
+## 🛠 Desenvolvimento e Arquitetura
+
+### Consumindo a API
+Toda a comunicação externa deve passar pelo arquivo `api/index.js`. Ele gerencia automaticamente o **Token de Sessão**, **Timeouts** e **URL Base**.
+
+**Como criar uma nova chamada:**
+1. Abra `api/index.js`.
+2. Exporte uma nova função utilizando o helper `authenticatedFetch`.
+
+```javascript
+// Exemplo em api/index.js
+export const buscarProduto = (codigo) => {
+    // O endpoint /apiv1 já é prefixado automaticamente
+    return authenticatedFetch('/produtos/consulta', { codigo });
+};
 ```
 
-Instale as dependências:
-```bash
-npm install
+**Como usar na tela:**
+
+```javascript
+import * as api from '../api';
+
+const handleBusca = async () => {
+    try {
+        const dados = await api.buscarProduto('12345');
+        console.log(dados);
+    } catch (error) {
+        alert(error.message);
+    }
+};
 ```
 
-Inicie o servidor de desenvolvimento:
-```bash
-npx expo start
+### Gerenciamento de Estado (Contexts)
+
+#### AuthContext (`useAuth`)
+
+Gerencia o usuário logado, permissões e armazéns.
+
+```javascript
+import { useAuth } from '../contexts/AuthContext';
+
+const { 
+    userSession,   // Objeto do usuário logado
+    warehouses,    // Lista de armazéns permitidos
+    login,         // Função de login (user, pass)
+    logout,        // Função de logout
+    authStatus     // 'loggedIn', 'loggedOut', 'authenticating'
+} = useAuth();
 ```
-Para limpar o cache, caso encontre algum problema, use npx expo start -c.
 
-📦 Como Gerar o APK Localmente (Build de Produção)
-Estas instruções são para criar um APK assinado e pronto para distribuição, compilado na sua própria máquina.
+#### ThemeContext (`useTheme`)
 
-Pré-requisitos:
-Ambiente Android Configurado: É necessário ter o Android Studio, JDK e as variáveis de ambiente do Android configuradas. Siga o guia oficial do React Native em "Environment Setup", na aba "React Native CLI Quickstart".
+Gerencia as cores (Light/Dark mode).
 
-Projeto em um Caminho Curto: Para evitar erros de compilação no Windows, certifique-se de que a pasta do projeto esteja em um caminho curto, como C:\dev\ZENITH-WMS-APP\.
+```javascript
+import { useTheme } from '../contexts/ThemeContext';
 
-Passo 1: Preparar o Ambiente Nativo (Prebuild)
-Este comando cria a pasta /android com todo o código nativo do projeto. O argumento --clean apaga a pasta /android se ela já existir, garantindo uma configuração limpa e evitando erros de cache.
+const { colors, theme } = useTheme();
+
+// Uso no estilo
+<View style={{ backgroundColor: colors.background }}>
+    <Text style={{ color: colors.text }}>Olá</Text>
+</View>
+```
+
+---
+
+## 🚀 Guia de Compilação (Build)
+
+Siga este guia estritamente para gerar um **APK Assinado (Release)** pronto para instalação.
+
+### 1. Configuração de Assinatura (Keystore)
+
+Se você **ainda não tem** uma keystore, gere uma com o comando abaixo. Guarde as senhas!
 
 ```bash
-npx expo prebuild --clean --platform android
+keytool -genkey -v -keystore android/app/zenith-wms-app.keystore -alias zenith-wms-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "sua_senha_aqui" -keypass "sua_senha_aqui"
 ```
-Passo 2: Criar a Chave de Assinatura (keystore)
-Esta chave é um arquivo único que certifica a autoria do seu app. Guarde este arquivo e as senhas em um local extremamente seguro!
 
-Navegue até a pasta android/app:
-```bash
-cd android/app
-```
-Execute o comando keytool para gerar a chave. Ele fará algumas perguntas e pedirá para você criar duas senhas.
+**Configurando o Gradle:**
 
-```bash
-keytool -genkey -v -keystore zenith-wms-app.keystore -alias zenith-wms-alias -keyalg RSA -keysize 2048 -validity 10000
-```
-Um arquivo .keystore será criado dentro da pasta android/app.
-
-Passo 3: Configurar o Gradle para Assinatura
-Edite o arquivo android/gradle.properties e adicione as seguintes linhas, substituindo SUA_SENHA pela senha que você acabou de criar:
+1. Coloque o arquivo `.keystore` gerado dentro de `android/app/`.
+2. Abra `android/gradle.properties` (crie se não existir) e adicione:
 
 ```properties
 ZENITH_RELEASE_STORE_FILE=zenith-wms-app.keystore
 ZENITH_RELEASE_KEY_ALIAS=zenith-wms-alias
-ZENITH_RELEASE_STORE_PASSWORD=SUA_SENHA
-ZENITH_RELEASE_KEY_PASSWORD=SUA_SENHA
-
-# Adicione esta linha para evitar erros de falta de memória durante a build
-org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g
+ZENITH_RELEASE_STORE_PASSWORD=sua_senha_aqui
+ZENITH_RELEASE_KEY_PASSWORD=sua_senha_aqui
 ```
-Edite o arquivo android/app/build.gradle e adicione as configurações de assinatura (signingConfigs) dentro do bloco android { ... }:
+
+### 2. Personalizar Nome do APK (Automático)
+
+Para que o arquivo final saia como `ZENITH-BASE-APP-1.0.16.apk` ao invés de `app-release.apk`, adicione o seguinte bloco no final da seção `android { ... }` dentro do arquivo **`android/app/build.gradle`**:
 
 ```groovy
-...
 android {
-    ...
-    signingConfigs {
-        debug { ... }
-        release {
-            if (project.hasProperty('ZENITH_RELEASE_STORE_FILE')) {
-                storeFile file(ZENITH_RELEASE_STORE_FILE)
-                storePassword ZENITH_RELEASE_STORE_PASSWORD
-                keyAlias ZENITH_RELEASE_KEY_ALIAS
-                keyPassword ZENITH_RELEASE_KEY_PASSWORD
-            }
+    // ... configurações existentes ...
+
+    // ADICIONE ESTE BLOCO NO FINAL DE "android {}"
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            // Define o nome: NomeDoProjeto-Versao.apk
+            outputFileName = "ZENITH-BASE-APP-${variant.versionName}.apk"
         }
-    }
-    buildTypes {
-        release {
-            ...
-            // Garanta que esta linha aponta para 'release'
-            signingConfig signingConfigs.release 
-        }
-    }
-    ...
-}
-...
-```
-Passo 4: Gerar o APK
-Navegue para a pasta android (se você estava em android/app, suba um nível com cd ..):
-```bash
-cd C:\caminho\do\seu\projeto\android
-```
-Execute o comando de compilação.
-
-No Windows (PowerShell):
-```powershell
-.\gradlew clean assembleRelease
-```
-No macOS/Linux:
-```bash
-./gradlew clean assembleRelease
-```
-Após a conclusão, seu APK final estará localizado em android/app/build/outputs/apk/release/app-release.apk.
-
-🚀 Compilação Rápida (Após a Primeira Configuração)
-Uma vez que a chave de assinatura (.keystore) e o gradle.properties já foram configurados, o processo para gerar novas versões do APK é mais simples:
-
-```bash
-# 1. Garante que a pasta android está limpa e sincronizada com o projeto
-npx expo prebuild --clean --platform android
-
-# 2. Navega para a pasta android
-cd android
-
-# 3. Executa a compilação (Windows/PowerShell)
-.\gradlew assembleRelease
-```
-📂 Estrutura de Arquivos
-O projeto está organizado da seguinte maneira:
-
-/assets: Contém todos os recursos estáticos, como ícones, imagens e fontes.
-
-/components: Componentes reutilizáveis da UI (botões, modais, cards, etc.).
-
-/contexts: Gerenciamento de estado global com a Context API (Autenticação, Tema).
-
-/navigation: Configuração das rotas e do fluxo de navegação do aplicativo.
-
-/screens: As telas principais do aplicativo (Login, Main, Details, etc.).
-
-/utils: Funções utilitárias, como formatadores de dados.
-
-App.js: O ponto de entrada principal do aplicativo.
-
-
-para assinar o app:
-
-```
-keytool -genkey -v -keystore android/app/zenith-wms-app.keystore -alias zenith-wms-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "senha" -keypass "senha"
-```
-
-Copie e cole substituindo a seção android atual:
-
-```
-android {
-    ndkVersion rootProject.ext.ndkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
-    namespace 'com.robertocjunior.base.zenithwms'
-
-    defaultConfig {
-        applicationId 'com.robertocjunior.base.zenithwms'
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.0.16"
-    }
-
-    signingConfigs {
-        debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-        release {
-            if (project.hasProperty('ZENITH_RELEASE_STORE_FILE')) {
-                storeFile file(ZENITH_RELEASE_STORE_FILE)
-                storePassword ZENITH_RELEASE_STORE_PASSWORD
-                keyAlias ZENITH_RELEASE_KEY_ALIAS
-                keyPassword ZENITH_RELEASE_KEY_PASSWORD
-            }
-        }
-    }
-
-    buildTypes {
-        debug {
-            signingConfig signingConfigs.debug
-        }
-        release {
-            // Alterado para usar a config de release definida acima
-            signingConfig signingConfigs.release
-            shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
-            minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
-        }
-    }
-
-    packagingOptions {
-        jniLibs {
-            useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
-        }
-    }
-    androidResources {
-        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
 }
 ```
 
-para compilar o app use a seguinte sequencia de comandos
+### 3. Gerando o APK Release
 
-```
+Para garantir uma build limpa e atualizada, execute a sequência exata abaixo no terminal (na raiz do projeto):
+
+1. **Limpar builds anteriores (dentro da pasta android):**
+```bash
 cd android
-```
-
-```
 ./gradlew clean
-```
-
-```
 cd ..
 ```
 
-```
+
+2. **Regerar código nativo (Prebuild):**
+Isso sincroniza as versões do `package.json` e `app.json` com o Android nativo.
+```bash
 npx expo prebuild --platform android
-```
 
 ```
+
+
+3. **Compilar o APK Release:**
+```bash
 cd android
-```
-
-```
 .\gradlew assembleRelease
 ```
 
-Para testes realtime utilize
-```
+
+
+✅ **Onde está o APK?**
+O arquivo estará em: `android/app/build/outputs/apk/release/ZENITH-BASE-APP-1.0.16.apk`
+
+---
+
+## 📱 Execução em Debug
+
+Para testar o aplicativo em tempo real no emulador ou dispositivo físico conectado via USB (com hot-reload):
+
+```bash
 npx expo run:android
+```
+
+Se precisar limpar o cache do Metro Bundler:
+
+```bash
+npx expo start -c
 ```
